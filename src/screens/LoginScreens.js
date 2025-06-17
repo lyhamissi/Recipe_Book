@@ -5,89 +5,106 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../context/UserContext';
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const { updateUser } = useContext(UserContext);
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async () => {
+    setError('');
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      setError('Please enter email and password');
       return;
     }
 
     try {
-      // ✅ Admin login
-      const adminEmail = 'admin@example.com';
-      const adminPassword = 'admin123';
+      setLoading(true);
 
-      if (email.toLowerCase() === adminEmail && password === adminPassword) {
-        const admin = {
-          email: adminEmail,
-          name: 'Admin',
-          role: 'admin',
-        };
-        await updateUser(admin);
-        Alert.alert('Welcome Admin!');
+      const response = await fetch('http://192.168.208.248:4000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.toLowerCase(),
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Login failed');
+        setLoading(false);
+        return;
+      }
+      if (!data.user) {
+        setError('User data is missing from response');
+        setLoading(false);
+        return;
+      }
+      await AsyncStorage.setItem('token', String(data.token));
+      await AsyncStorage.setItem('user', JSON.stringify(data.user));
+      updateUser(data.user);
+
+
+      if (data.user.userRole === 'ADMIN') {
         navigation.replace('AdminHome');
-        return;
-      }
-
-      // 🔎 Check registered users
-      const storedUsers = await AsyncStorage.getItem('users');
-      if (!storedUsers) {
-        Alert.alert('No users found', 'Please register first');
-        return;
-      }
-
-      const users = JSON.parse(storedUsers);
-      const user = users.find(
-        u => u.email === email.toLowerCase() && u.password === password
-      );
-
-      if (user) {
-        await updateUser(user);
-        Alert.alert('Welcome User!');
-        navigation.replace('Home');
       } else {
-        Alert.alert('Invalid credentials', 'Email or password is incorrect');
+        navigation.replace('Home');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to login');
-      console.log(error);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Network error, please try again');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Recipe Book Login</Text>
+        <Text style={styles.title}>Login</Text>
+
         <TextInput
           style={styles.input}
           placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
         />
+
         <TextInput
           style={styles.input}
           placeholder="Password"
+          secureTextEntry
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
         />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Logging in...' : 'Login'}
+          </Text>
         </TouchableOpacity>
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.link}>Don't have an account? Register here</Text>
+          <Text style={styles.link}>
+            Don't have an account? Register here
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -137,12 +154,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  error: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   link: {
     color: '#a0522d',
