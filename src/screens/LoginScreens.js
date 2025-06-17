@@ -98,7 +98,9 @@ export default function LoginScreen({ navigation }) {
             {loading ? 'Logging in...' : 'Login'}
           </Text>
         </TouchableOpacity>
-
+        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+          <Text style={styles.forgotPasswordLink}>Forgot Password?</Text>
+        </TouchableOpacity>
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -172,4 +174,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 15,
   },
+  forgotPasswordLink: {
+    color: '#a0522d',
+    textAlign: 'center',
+    fontSize: 15,
+    marginBottom: 16,
+    textDecorationLine: 'underline',
+  },
+
 });
