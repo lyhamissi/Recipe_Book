@@ -39,7 +39,7 @@ export default function RegisterScreen() {
         return;
       }
 
-      navigation.replace('Login');
+      navigation.replace('EmailVerification', { email });
     } catch (err) {
       console.error('Register error:', err);
       setError('Something went wrong. Please try again.');

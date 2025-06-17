@@ -24,6 +24,7 @@ import UserProfileScreen from '../screens/UserProfileScreen';
 import UserBlogList from '../screens/UserBlogListScreen';
 import BlogDetail from '../screens/UserBlogDetailsScreen';
 import UserBlogDetail from '../screens/UserBlogDetailsScreen';
+import EmailVerificationScreen from '../screens/EmailVerificationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +36,7 @@ export default function AppNavigator() {
             <Stack.Navigator initialRouteName={isLoggedIn ? "Home" : "Login"}>
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name='EmailVerification' component={EmailVerificationScreen}/>
                 {isLoggedIn && user?.role === 'admin' && (
                     <>
                         <Stack.Screen name="AdminHome" component={AdminHomeScreen} />
