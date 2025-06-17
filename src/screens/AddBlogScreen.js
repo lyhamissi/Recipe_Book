@@ -12,52 +12,35 @@ import {
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { RecipeContext } from '../context/RecipeContext';
+import { BlogContext } from '../context/BlogContext'; // Assuming you have BlogContext
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Picker } from '@react-native-picker/picker';
 
-export default function AddRecipeScreen({ navigation, route }) {
-  const { addRecipe, updateRecipe } = useContext(RecipeContext);
-  const recipeToEdit = route.params?.recipeToEdit;
-  const [category, setCategory] = useState(recipeToEdit?.category ?? '');
+export default function AddBlogScreen({ navigation, route }) {
+  const { addBlog, updateBlog } = useContext(BlogContext);
+  const blogToEdit = route.params?.blogToEdit;
 
-  const [title, setTitle] = useState(recipeToEdit?.title ?? '');
-  const [description, setDescription] = useState(recipeToEdit?.description ?? '');
-  const [instructions, setInstructions] = useState(recipeToEdit?.instructions ?? '');
-  const [image, setImage] = useState(recipeToEdit?.image ?? '');
+  const [title, setTitle] = useState(blogToEdit?.title ?? '');
+  const [summary, setSummary] = useState(blogToEdit?.summary ?? '');
+  const [content, setContent] = useState(blogToEdit?.content ?? '');
+  const [image, setImage] = useState(blogToEdit?.image ?? '');
 
   const showAlert = (title, message) => Alert.alert(title, message);
 
-  // const validateInputs = () => {
-  //   if (!title.trim()) {
-  //     Alert.alert('Error', 'Please enter a title');
-  //     return false;
-  //   }
-  //   if (!instructions.trim()) {
-  //     Alert.alert('Error', 'Please enter the instructions');
-  //     return false;
-  //   }
-  //   return true;
-  // };
-
   const handleSave = () => {
-    // if (!validateInputs()) return;
-
-    const recipeData = {
-      id: recipeToEdit ? recipeToEdit.id : Date.now().toString(),
+    const blogData = {
+      id: blogToEdit ? blogToEdit.id : Date.now().toString(),
       title,
-      description,
-      instructions,
+      summary,
+      content,
       image,
-      category,
     };
 
-    if (recipeToEdit) {
-      updateRecipe(recipeData);
-      showAlert('Success', 'Recipe updated!');
+    if (blogToEdit) {
+      updateBlog(blogData);
+      showAlert('Success', 'Blog updated!');
     } else {
-      addRecipe(recipeData);
-      showAlert('Success', 'Recipe added!');
+      addBlog(blogData);
+      showAlert('Success', 'Blog added!');
     }
 
     navigation.goBack();
@@ -119,46 +102,29 @@ export default function AddRecipeScreen({ navigation, route }) {
             style={styles.input}
             value={title}
             onChangeText={setTitle}
-            placeholder="Recipe title"
+            placeholder="Blog title"
             placeholderTextColor="#a18566"
           />
 
-          <Text style={styles.label}>Description:</Text>
+          <Text style={styles.label}>Summary:</Text>
           <TextInput
             style={[styles.input, { height: 100 }]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Recipe description"
+            value={summary}
+            onChangeText={setSummary}
+            placeholder="Brief summary"
             multiline
             placeholderTextColor="#a18566"
           />
 
-          <Text style={styles.label}>Instructions:</Text>
+          <Text style={styles.label}>Content:</Text>
           <TextInput
             style={[styles.input, { height: 140 }]}
-            value={instructions}
-            onChangeText={setInstructions}
-            placeholder="Recipe instructions"
+            value={content}
+            onChangeText={setContent}
+            placeholder="Blog content"
             multiline
             placeholderTextColor="#a18566"
           />
-          <Text style={styles.label}>Category:</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={category}
-              onValueChange={(itemValue) => setCategory(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select Category" value="" />
-              <Picker.Item label="Breakfast" value="Breakfast" />
-              <Picker.Item label="Lunch" value="Lunch" />
-              <Picker.Item label="Dinner" value="Dinner" />
-              <Picker.Item label="Dessert" value="Dessert" />
-              <Picker.Item label="Vegan" value="Vegan" />
-              <Picker.Item label="Drinks" value="Drinks" />
-            </Picker>
-          </View>
-
 
           <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
             <Text style={styles.imageButtonText}>Select Image</Text>
@@ -169,10 +135,9 @@ export default function AddRecipeScreen({ navigation, route }) {
           <TouchableOpacity
             style={[styles.saveButton, { backgroundColor: '#b2a07a' }]}
             onPress={handleSave}
-          // disabled={!validateInputs()}
           >
             <Text style={styles.saveButtonText}>
-              {recipeToEdit ? 'Update Recipe' : 'Add Recipe'}
+              {blogToEdit ? 'Update Blog' : 'Add Blog'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -182,7 +147,7 @@ export default function AddRecipeScreen({ navigation, route }) {
             <Icon name="home-outline" size={35} color="#7f5539" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('AddRecipe')}>
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('AddBlog')}>
             <Icon name="add-circle-outline" size={35} color="#7f5539" />
           </TouchableOpacity>
 
@@ -190,8 +155,8 @@ export default function AddRecipeScreen({ navigation, route }) {
             <Icon name="person-circle-outline" size={35} color="#7f5539" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Blog')}>
-            <Icon name="newspaper-outline" size={24} color="#7f5539" />
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Recipe')}>
+            <Icon name="restaurant-outline" size={24} color="#7f5539" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.navButton} onPress={() => navigation.replace('Login')}>
@@ -203,7 +168,7 @@ export default function AddRecipeScreen({ navigation, route }) {
   );
 }
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 24,
@@ -275,17 +240,4 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#7f5539',
-    borderRadius: 6,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-    color: '#7f5539',
-    backgroundColor: '#fffaf4',
-  },
-
 });

@@ -13,14 +13,13 @@ import { UserContext } from '../context/UserContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function ProfileScreen({ navigation }) {
+export default function UserProfileScreen({ navigation }) {
   const { user, updateUser } = useContext(UserContext);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState(user?.avatar || null);
 
   useEffect(() => {
-    // Keep local state synced if user changes externally
     setName(user?.name || '');
     setEmail(user?.email || '');
     setAvatar(user?.avatar || null);
@@ -41,7 +40,7 @@ export default function ProfileScreen({ navigation }) {
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission Required', 'Permission to access gallery is required!');
+      Alert.alert('Permission Required', 'Access to media is required.');
       return;
     }
 
@@ -60,7 +59,7 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>User Profile</Text>
+      <Text style={styles.title}>My Profile</Text>
 
       <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
         {avatar ? (
@@ -79,7 +78,6 @@ export default function ProfileScreen({ navigation }) {
           placeholder="Name"
           style={styles.input}
         />
-
         <TextInput
           value={email}
           onChangeText={setEmail}
@@ -87,7 +85,6 @@ export default function ProfileScreen({ navigation }) {
           style={styles.input}
           keyboardType="email-address"
         />
-
         <TouchableOpacity style={styles.button} onPress={handleSave}>
           <Text style={styles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
@@ -96,21 +93,21 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.bottomNavbar}>
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('AdminHome')}
+          onPress={() => navigation.navigate('Home')}
         >
           <Icon name="home-outline" size={35} color="#7f5539" />
         </TouchableOpacity>
-
+{/* 
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('AddRecipe')}
+          onPress={() => navigation.navigate('MyRecipes')}
         >
-          <Icon name="add-circle-outline" size={35} color="#7f5539" />
-        </TouchableOpacity>
+          <Icon name="book-outline" size={30} color="#7f5539" />
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('Profile')}
+          onPress={() => navigation.navigate('UserProfile')}
         >
           {avatar ? (
             <Image source={{ uri: avatar }} style={styles.navAvatar} />
@@ -119,12 +116,12 @@ export default function ProfileScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('Blog')}
+          onPress={() => navigation.navigate('DishDiary')}
         >
-          <Icon name="newspaper-outline" size={24} color="#7f5539" />
-        </TouchableOpacity>
+          <Icon name="journal-outline" size={24} color="#7f5539" />
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={styles.navButton}

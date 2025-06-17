@@ -3,12 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const UserContext = createContext();
 
-export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    name: '',
-    email: '',
-    avatar: null,
-  });
+export function UserProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -19,6 +16,8 @@ export const UserProvider = ({ children }) => {
         }
       } catch (err) {
         console.error('Failed to load user profile', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -35,9 +34,25 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const logout = async () => {
+    setUser(null);
+    try {
+      await AsyncStorage.removeItem('userProfile');
+    } catch (err) {
+      console.error('Failed to remove user profile', err);
+    }
+  };
+
+  const isLoggedIn = !!user;
+
+  // Helper to check if user is admin
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <UserContext.Provider value={{ user, updateUser }}>
+    <UserContext.Provider
+      value={{ user, updateUser, logout, isLoggedIn, loading, isAdmin }}
+    >
       {children}
     </UserContext.Provider>
   );
-};
+}

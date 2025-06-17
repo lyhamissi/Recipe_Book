@@ -1,62 +1,71 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const RecipeContext = createContext();
 
-export const RecipeProvider = ({ children }) => {
-    const [recipes, setRecipes] = useState([]);
+export function RecipeProvider({ children }) {
+  const [recipes, setRecipes] = useState([]);
 
-    // Load recipes on mount
-    useEffect(() => {
-        const loadRecipes = async () => {
-            try {
-                const saved = await AsyncStorage.getItem('recipes');
-                if (saved) setRecipes(JSON.parse(saved));
-            } catch (err) {
-                console.error('Failed to load recipes', err);
-            }
-        };
-        loadRecipes();
-    }, []);
-    const saveRecipes = async (newRecipes) => {
-        try {
-            await AsyncStorage.setItem('recipes', JSON.stringify(newRecipes));
-        } catch (err) {
-            console.error('Failed to save recipes', err);
-        }
-    };
+  useEffect(() => {
+    loadRecipes();
+  }, []);
 
-    const addRecipe = async (newRecipe) => {
-        const updated = [...recipes, newRecipe];
-        setRecipes(updated);
-        await saveRecipes(updated);
-    };
+  // Load all recipes from shared key
+  const loadRecipes = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('recipes_all');
+      if (jsonValue != null) {
+        setRecipes(JSON.parse(jsonValue));
+      } else {
+        setRecipes([]);
+      }
+    } catch (e) {
+      console.error('Failed to load recipes', e);
+    }
+  };
 
-    const editRecipe = async (updatedRecipe) => {
-        const updated = recipes.map((r) =>
-            r.id === updatedRecipe.id ? updatedRecipe : r
-        );
-        setRecipes(updated);
-        await saveRecipes(updated);
-    };
+  // Save all recipes to shared key
+  const saveRecipes = async (recipesToSave) => {
+    try {
+      const jsonValue = JSON.stringify(recipesToSave);
+      await AsyncStorage.setItem('recipes_all', jsonValue);
+      setRecipes(recipesToSave);
+    } catch (e) {
+      console.error('Failed to save recipes', e);
+    }
+  };
 
-    const deleteRecipe = async (id) => {
-        const updated = recipes.filter((r) => r.id !== id);
-        setRecipes(updated);
-        await saveRecipes(updated);
-    };
+  // Add a recipe (append to shared list)
+  const addRecipe = (newRecipe) => {
+    const updatedRecipes = [...recipes, newRecipe];
+    saveRecipes(updatedRecipes);
+  };
 
-    const updateRecipe = (updatedRecipe) => {
-        setRecipes((prevRecipes) =>
-            prevRecipes.map((recipe) =>
-                recipe.id === updatedRecipe.id ? updatedRecipe : recipe
-            )
-        );
-    };
-    return (
-        <RecipeContext.Provider value={{ recipes, addRecipe, deleteRecipe, updateRecipe }}>
-            {children}
-        </RecipeContext.Provider>
-
+  // Update a recipe by id
+  const updateRecipe = (updatedRecipe) => {
+    const updatedRecipes = recipes.map((r) =>
+      r.id === updatedRecipe.id ? updatedRecipe : r
     );
-};
+    saveRecipes(updatedRecipes);
+  };
+
+  // Delete a recipe by id
+  const deleteRecipe = (id) => {
+    const updatedRecipes = recipes.filter((r) => r.id !== id);
+    saveRecipes(updatedRecipes);
+  };
+
+  return (
+    <RecipeContext.Provider
+      value={{
+        recipes,
+        addRecipe,
+        updateRecipe,
+        deleteRecipe,
+        loadRecipes,
+      }}
+    >
+      {children}
+    </RecipeContext.Provider>
+  );
+}
