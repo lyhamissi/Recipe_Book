@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function UserHomeScreen({ navigation }) {
   return (
@@ -25,6 +26,14 @@ export default function UserHomeScreen({ navigation }) {
       >
         <Text style={styles.buttonText}>View Blogs</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Admin', { screen: 'AdminHome', })}>
+        <Text>Go to Admin Home</Text>
+      </TouchableOpacity>
+      <TouchableOpacity  onPress={() => navigation.navigate('Admin', { screen:'AddRecipe'})}>
+        <Icon name="add-circle-outline" size={35} color="#7f5539" />
+      </TouchableOpacity>
+
+
     </View>
   );
 }

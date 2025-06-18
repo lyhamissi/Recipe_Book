@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 
 export default function EmailVerificationScreen({ route, navigation }) {
-  // get email from route params to resend verification if needed
   const { email } = route.params;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.navigate('Login');
+    }, 30000); // 30 seconds
+
+    // Cleanup in case the component unmounts early
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
   const resendVerification = async () => {
     setLoading(true);
     setMessage('');
     try {
-      const response = await fetch('http://192.168.208.248:4000/api/auth/resend-verification', {
+      const response = await fetch('http://10.36.240.248:4000/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -42,10 +50,8 @@ export default function EmailVerificationScreen({ route, navigation }) {
       </TouchableOpacity>
 
       {message ? <Text style={styles.message}>{message}</Text> : null}
-      
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.linkText}>Back to Login</Text>
-      </TouchableOpacity>
+
+      <Text style={styles.linkText}>You’ll be redirected to Login in 30 seconds...</Text>
     </View>
   );
 }
@@ -91,5 +97,6 @@ const styles = StyleSheet.create({
     color: '#a0522d',
     textAlign: 'center',
     fontSize: 15,
+    marginTop: 10,
   },
 });

@@ -62,7 +62,7 @@ export default function AdminHomeScreen({ navigation }) {
           </Text>
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={() => navigation.navigate('UserHome')}
+            onPress={() => navigation.navigate('User')}
           >
             <Text style={styles.loginButtonText}>Go to User Home</Text>
           </TouchableOpacity>

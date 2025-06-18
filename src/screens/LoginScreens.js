@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }) {
     try {
       setLoading(true);
 
-      const response = await fetch('http://192.168.208.248:4000/api/auth/login', {
+      const response = await fetch('http://10.36.240.248:4000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -55,9 +55,9 @@ export default function LoginScreen({ navigation }) {
 
 
       if (data.user.userRole === 'ADMIN') {
-        navigation.replace('AdminHome');
+       navigation.replace('Admin', { screen: 'AdminHome' });;
       } else {
-        navigation.replace('Home');
+        navigation.replace('User');
       }
     } catch (err) {
       console.error('Login error:', err);

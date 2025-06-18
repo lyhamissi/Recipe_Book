@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export const RecipeContext = createContext();
 
@@ -7,10 +8,24 @@ export function RecipeProvider({ children }) {
   const [recipes, setRecipes] = useState([]);
 
   useEffect(() => {
-    loadRecipes();
+    fetchRecipesFromBackend(); // Fetch from API initially
   }, []);
 
-  // Load all recipes from shared key
+  const fetchRecipesFromBackend = async () => {
+    try {
+      const response = await axios.get('http://10.36.240.248:4000/api/recipes');
+      console.log('API response:', response.data); // Debug log
+      // Use .data.data according to your API response structure
+      const fetchedRecipes = response.data?.data || [];
+
+      setRecipes(fetchedRecipes);
+      await AsyncStorage.setItem('recipes_all', JSON.stringify(fetchedRecipes));
+    } catch (error) {
+      console.error('Error fetching recipes from backend:', error);
+      loadRecipes(); // fallback to local storage
+    }
+  };
+
   const loadRecipes = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('recipes_all');
@@ -20,11 +35,10 @@ export function RecipeProvider({ children }) {
         setRecipes([]);
       }
     } catch (e) {
-      console.error('Failed to load recipes', e);
+      console.error('Failed to load recipes from storage:', e);
     }
   };
 
-  // Save all recipes to shared key
   const saveRecipes = async (recipesToSave) => {
     try {
       const jsonValue = JSON.stringify(recipesToSave);
@@ -35,13 +49,32 @@ export function RecipeProvider({ children }) {
     }
   };
 
-  // Add a recipe (append to shared list)
-  const addRecipe = (newRecipe) => {
-    const updatedRecipes = [...recipes, newRecipe];
-    saveRecipes(updatedRecipes);
+  const addRecipe = async (newRecipe) => {
+    try {
+      const response = await axios.post(
+        'http://10.36.240.248:4000/api/recipes/create',
+        newRecipe,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const savedRecipe = response.data;
+      const updatedRecipes = [...recipes, savedRecipe];
+      await saveRecipes(updatedRecipes);
+
+      return { success: true, message: 'Recipe added successfully!' };
+    } catch (error) {
+      console.error('Error adding recipe:', error.response?.data || error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to add recipe.',
+      };
+    }
   };
 
-  // Update a recipe by id
   const updateRecipe = (updatedRecipe) => {
     const updatedRecipes = recipes.map((r) =>
       r.id === updatedRecipe.id ? updatedRecipe : r
@@ -49,7 +82,6 @@ export function RecipeProvider({ children }) {
     saveRecipes(updatedRecipes);
   };
 
-  // Delete a recipe by id
   const deleteRecipe = (id) => {
     const updatedRecipes = recipes.filter((r) => r.id !== id);
     saveRecipes(updatedRecipes);
@@ -63,6 +95,7 @@ export function RecipeProvider({ children }) {
         updateRecipe,
         deleteRecipe,
         loadRecipes,
+        fetchRecipesFromBackend, // now exposed
       }}
     >
       {children}

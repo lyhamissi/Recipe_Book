@@ -40,7 +40,7 @@ export default function UserBlogList({ navigation }) {
       </ScrollView>
 
       <View style={styles.bottomNavbar}>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('UserHome')}>
           <Icon name="home-outline" size={30} color="#7f5539" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('UserProfile')}>

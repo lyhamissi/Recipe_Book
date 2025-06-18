@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const UserContext = createContext();
@@ -34,7 +34,7 @@ export function UserProvider({ children }) {
     }
   };
 
-  const logout = async () => {
+  const logout = async (navigation) => {
     setUser(null);
     try {
       await AsyncStorage.removeItem('user');
@@ -42,24 +42,35 @@ export function UserProvider({ children }) {
     } catch (err) {
       console.error('Failed to remove user/token', err);
     }
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
   };
 
   const isLoggedIn = !!user;
-  const userRole = user?.userRole;
-  
-const isAdmin = userRole === 'ADMIN';
-const isSuperAdmin = userRole === 'SUPERADMIN';
-const isNormalUser = userRole === 'USER';
 
+  const {
+    isAdmin,
+    isSuperAdmin,
+    isNormalUser
+  } = useMemo(() => {
+    const role = user?.userRole?.toUpperCase?.();
+    return {
+      isAdmin: role === 'ADMIN',
+      isSuperAdmin: role === 'SUPERADMIN',
+      isNormalUser: role === 'USER',
+    };
+  }, [user]);
 
   return (
     <UserContext.Provider
       value={{
         user,
-        updateUser,
         logout,
+        isAdmin,
         isLoggedIn,
-        loading,
+        updateUser,
         isAdmin,
         isSuperAdmin,
         isNormalUser,

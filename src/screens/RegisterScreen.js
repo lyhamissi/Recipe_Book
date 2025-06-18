@@ -17,11 +17,11 @@ export default function RegisterScreen() {
       setError('Please fill all fields');
       return;
     }
-    console.log("Registering with URL:", 'http://192.168.208.248:4000/api/auth/register');
+    console.log("Registering with URL:", 'http://10.36.240.248:4000/api/auth/register');
 
     try {
       setLoading(true);
-      const response = await fetch('http://192.168.208.248:4000/api/auth/register', {
+      const response = await fetch('http://10.36.240.248:4000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

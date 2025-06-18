@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useCallback } from 'react';
 import { UserContext } from '../context/UserContext';
 import { RecipeContext } from '../context/RecipeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -14,12 +14,21 @@ import {
     TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useFocusEffect } from '@react-navigation/native';
+
 export default function UserRecipeListScreen({ navigation }) {
     const { user, isLoggedIn, logout, loading } = useContext(UserContext);
-    const { recipes } = useContext(RecipeContext);
+    const { recipes, fetchRecipesFromBackend } = useContext(RecipeContext);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
 
+    useFocusEffect(
+        useCallback(() => {
+            if (isLoggedIn) {
+                fetchRecipesFromBackend(); 
+            }
+        }, [isLoggedIn])
+    );
 
     if (loading) {
         return (
@@ -38,13 +47,14 @@ export default function UserRecipeListScreen({ navigation }) {
                     </Text>
                     <TouchableOpacity
                         style={styles.loginButton}
-                        onPress={() => navigation.navigate('Login')}
+                        onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
                     >
                         <Text style={styles.loginButtonText}>Go to Login</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
                         style={styles.registerButton}
-                        onPress={() => navigation.navigate('Register')}
+                        onPress={() => navigation.navigate('Auth', { screen: 'Register' })}
                     >
                         <Text style={styles.registerButtonText}>Register</Text>
                     </TouchableOpacity>
@@ -52,14 +62,19 @@ export default function UserRecipeListScreen({ navigation }) {
             </SafeAreaView>
         );
     }
-    const userRecipes = recipes
-        .filter(recipe => recipe.creatorId === user.id)
-        .filter(recipe =>
-            selectedCategory ? recipe.category === selectedCategory : true
-        )
-        .filter(recipe =>
-            recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+
+const userRecipes = recipes
+    .filter(recipe => (selectedCategory ? recipe.category === selectedCategory : true))
+    .filter(recipe => recipe.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const handleLogout = async () => {
+        await logout();
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+        });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Discover Delicious Recipes</Text>
@@ -74,7 +89,7 @@ export default function UserRecipeListScreen({ navigation }) {
                 <View style={styles.pickerInlineContainer}>
                     <Picker
                         selectedValue={selectedCategory}
-                        onValueChange={(value) => setSelectedCategory(value)}
+                        onValueChange={value => setSelectedCategory(value)}
                         style={styles.pickerInline}
                     >
                         <Picker.Item label="All" value="" />
@@ -88,14 +103,14 @@ export default function UserRecipeListScreen({ navigation }) {
                 </View>
             </View>
 
-            {recipes.length === 0 ? (
+            {userRecipes.length === 0 ? (
                 <Text style={{ textAlign: 'center', marginTop: 50, color: '#FFA500' }}>
                     No recipes found. Please check back later!
                 </Text>
             ) : (
                 <FlatList
                     data={userRecipes}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={item => item.id.toString()}
                     contentContainerStyle={styles.recipeList}
                     renderItem={({ item }) => (
                         <View style={styles.recipeCard}>
@@ -115,7 +130,7 @@ export default function UserRecipeListScreen({ navigation }) {
             )}
 
             <View style={styles.bottomNavbar}>
-                <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Home')}>
+                <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('UserHome')}>
                     <Icon name="home-outline" size={30} color="#7f5539" />
                 </TouchableOpacity>
 
@@ -127,7 +142,7 @@ export default function UserRecipeListScreen({ navigation }) {
                     )}
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.navButton} onPress={logout}>
+                <TouchableOpacity style={styles.navButton} onPress={handleLogout}>
                     <Icon name="log-out-outline" size={30} color="#dc3545" />
                 </TouchableOpacity>
             </View>
@@ -139,7 +154,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 24,
-        backgroundColor: '#f8f4f0', // beige background
+        backgroundColor: '#f8f4f0',
         paddingBottom: 80,
     },
     notLoggedInContainer: {
@@ -150,12 +165,12 @@ const styles = StyleSheet.create({
     },
     notLoggedInText: {
         fontSize: 18,
-        color: '#7f5539', // brown
+        color: '#7f5539',
         marginBottom: 30,
         textAlign: 'center',
     },
     loginButton: {
-        backgroundColor: '#7f5539', // brown
+        backgroundColor: '#7f5539',
         paddingVertical: 12,
         paddingHorizontal: 30,
         borderRadius: 8,
@@ -166,24 +181,23 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     registerButton: {
-        borderColor: '#7f5539', // brown
+        borderColor: '#7f5539',
         borderWidth: 2,
         paddingVertical: 12,
         paddingHorizontal: 30,
         borderRadius: 8,
     },
     registerButtonText: {
-        color: '#7f5539', // brown
+        color: '#7f5539',
         fontSize: 16,
     },
     title: {
         fontSize: 26,
         fontWeight: 'bold',
-        color: '#7f5539', // brown
+        color: '#7f5539',
         textAlign: 'center',
         marginBottom: 20,
     },
-
     filterRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -214,12 +228,11 @@ const styles = StyleSheet.create({
         height: 45,
         width: '100%',
     },
-
     recipeList: {
         padding: 16,
     },
     recipeCard: {
-        backgroundColor: '#fff', // white cards on beige background
+        backgroundColor: '#fff',
         borderRadius: 12,
         marginBottom: 16,
         padding: 12,
@@ -241,10 +254,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 8,
         textAlign: 'center',
-        color: '#7f5539', // brown
+        color: '#7f5539',
     },
     viewButton: {
-        backgroundColor: '#7f5539', // brown
+        backgroundColor: '#7f5539',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 6,
@@ -259,7 +272,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 70,
-        backgroundColor: '#f8f4f0', // beige
+        backgroundColor: '#f8f4f0',
         borderTopWidth: 1,
         borderTopColor: '#e0d6ce',
         flexDirection: 'row',

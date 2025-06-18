@@ -93,7 +93,7 @@ export default function UserProfileScreen({ navigation }) {
       <View style={styles.bottomNavbar}>
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => navigation.navigate('UserHome')}
         >
           <Icon name="home-outline" size={35} color="#7f5539" />
         </TouchableOpacity>
